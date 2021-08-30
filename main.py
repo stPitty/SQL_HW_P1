@@ -102,7 +102,8 @@ main_info = {
         "'Nevermind', 1991",
         "'V', 2015",
         "'Carte Blanche', 2019",
-        "'Everything''s Beautiful', 2016"
+        "'Everything''s Beautiful', 2016",
+        "'Mixed Album', 2021"
     ],
     'tracks': [
         "'Soldier', 3.46, 1",
@@ -122,7 +123,8 @@ main_info = {
         "'Try My', 3.18, 9",
         "'Paris', 3.45, 9",
         "'Song for Selim', 2.40, 10",
-        "'Violets', 3.24, 10"
+        "'Violets', 3.24, 10",
+        "'Tone Deaf', 4.50, 1"
     ],
     'collections': [
         "'Super Hits', 2008",
@@ -160,6 +162,9 @@ connections = {
         "8, 8",
         "9, 9",
         "10, 10",
+        "1, 11",
+        "2, 11",
+        "3, 11"
     ],
     'CollectionsTracks': [
         "1, 1",
@@ -207,6 +212,61 @@ select_list = [
     WHERE name ILIKE '%%my%%'"""
 ]
 
+select_list_2 = [
+    """name, COUNT(gs.artist_id) FROM genres AS g
+    JOIN genresartists AS gs ON g.id = gs.gener_id
+    GROUP BY name""",
+
+    """a.name, COUNT(t.name) AS c FROM albums AS a
+    JOIN tracks AS t ON a.id = t.album_id
+    WHERE year = '2020' or year = '2019'
+    GROUP BY a.name
+    ORDER BY c DESC""",
+
+    """a.name, AVG(t.duration) AS d FROM albums AS a
+    JOIN tracks as T ON a.id = t.album_id
+    GROUP BY a.name
+    ORDER BY d DESC""",
+
+    """ar.name FROM artists AS ar
+    JOIN artistsalbums AS aa ON ar.id = aa.artist_id
+    JOIN albums AS al ON al.id = aa.album_id
+    WHERE year != '2020'
+    GROUP BY ar.name""",
+
+    """c.name FROM collections AS c
+    JOIN collectionstracks AS ct ON c.id = ct.collection_id
+    JOIN TRACKS AS T ON ct.track_id = t.id
+    JOIN albums AS al ON t.album_id = al.id
+    JOIN artistsalbums AS aa ON al.id = aa.album_id
+    JOIN artists AS ar ON aa.artist_id = ar.id
+    WHERE ar.name = 'Boris Brejcha'""",
+
+    """al.name FROM albums AS al
+    JOIN artistsalbums AS aa ON al.id = aa.album_id
+    JOIN artists AS ar ON aa.artist_id = ar.id
+    JOIN genresartists AS gs ON ar.id = gs.artist_id
+    GROUP BY al.name
+    HAVING COUNT(gs.gener_id) > 1""",
+
+    """t.name FROM tracks AS t
+    LEFT JOIN collectionstracks AS ct ON t.id = ct.track_id
+    WHERE ct.track_id IS NULL""",
+
+    """ar.name FROM artists AS ar
+    JOIN artistsalbums AS aa ON ar.id = aa.artist_id
+    JOIN albums AS al ON aa.album_id = al.id
+    JOIN tracks AS t ON al.id = t.album_id
+    WHERE t.duration <= (
+        SELECT MIN(duration) FROM tracks)""",
+
+    """al.name, COUNT(t.id) AS c FROM albums AS al
+    JOIN tracks AS t ON al.id = t.album_id
+    GROUP BY al.name
+    ORDER BY c
+    LIMIT 2"""
+]
+
 with open('/Users/rup/Work/BTC/Rules.txt') as file:
     connect = file.readline().strip('\n')
 
@@ -215,3 +275,4 @@ netology.create_tables(tables)
 netology.insert(main_info, default=True)
 netology.insert(connections)
 netology.select(select_list)
+netology.select(select_list_2)
