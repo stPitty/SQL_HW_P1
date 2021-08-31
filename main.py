@@ -263,8 +263,12 @@ select_list_2 = [
     """al.name, COUNT(t.id) AS c FROM albums AS al
     JOIN tracks AS t ON al.id = t.album_id
     GROUP BY al.name
-    ORDER BY c
-    LIMIT 2"""
+    HAVING COUNT(t.id) = (
+        SELECT MIN(c) FROM (
+            SELECT al.name, COUNT(t.id) AS c FROM albums AS al
+            JOIN tracks AS t ON al.id = t.album_id
+            GROUP BY al.name) AS minimum
+        )"""
 ]
 
 with open('/Users/rup/Work/BTC/Rules.txt') as file:
